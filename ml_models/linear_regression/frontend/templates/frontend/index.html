@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regresión Lineal ML · {{ profile.name }}</title>
+  <meta name="description" content="Predicción de precios de vivienda mediante modelo de regresión lineal entrenado con scikit-learn y servido en Django." />
+
+  <!-- Estilos CSS originales del diseño (sin React) -->
+  <link rel="stylesheet" href="{% static 'frontend/css/tokens.css' %}" />
+  <link rel="stylesheet" href="{% static 'frontend/css/global.css' %}" />
+  <link rel="stylesheet" href="{% static 'frontend/css/layout.css' %}" />
+  <link rel="stylesheet" href="{% static 'frontend/css/profile.css' %}" />
+  <link rel="stylesheet" href="{% static 'frontend/css/prediction.css' %}" />
+  <link rel="stylesheet" href="{% static 'frontend/css/info-tile.css' %}" />
+</head>
+<body>
+  <main class="app-page">
+    <div class="profile-layout">
+      <!-- Columna Izquierda: Gráfico de Regresión y Título del Proyecto -->
+      <section class="profile-card profile-person-card" aria-labelledby="profile-name">
+        <div class="profile-main">
+          <div class="profile-chart-container">
+            <svg
+              id="regression-svg-chart"
+              class="regression-chart"
+              viewBox="0 0 360 360"
+              overflow="hidden"
+              role="img"
+              aria-label="Gráfico de dispersión con datos reales de entrenamiento y línea de regresión lineal en blanco y negro"
+            >
+              <defs>
+                <linearGradient id="chartSurface" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="100%" stop-color="#f4f5f6" />
+                </linearGradient>
+              </defs>
+
+              <!-- Fondo del gráfico transparente para heredar el contenedor redondeado -->
+              <rect width="360" height="360" fill="transparent" />
+
+              <!-- Líneas de cuadrícula (Grid) en gris sutil -->
+              <g stroke="#e2e5e7" stroke-width="1" stroke-dasharray="2 3">
+                <line x1="56" y1="80" x2="320" y2="80" />
+                <line x1="56" y1="134" x2="320" y2="134" />
+                <line x1="56" y1="188" x2="320" y2="188" />
+                <line x1="56" y1="242" x2="320" y2="242" />
+                <line x1="56" y1="296" x2="320" y2="296" />
+                <line x1="56" y1="56" x2="56" y2="296" />
+                <line x1="144" y1="56" x2="144" y2="296" />
+                <line x1="232" y1="56" x2="232" y2="296" />
+                <line x1="320" y1="56" x2="320" y2="296" />
+              </g>
+
+              <!-- Ejes principales X e Y -->
+              <g stroke="#171918" stroke-width="1.5">
+                <line x1="56" y1="56" x2="56" y2="296" />
+                <line x1="56" y1="296" x2="320" y2="296" />
+              </g>
+
+              <!-- Línea de regresión entrenada (Recta negra nítida) -->
+              <line
+                x1="{{ chart_data.line.x1 }}"
+                y1="{{ chart_data.line.y1 }}"
+                x2="{{ chart_data.line.x2 }}"
+                y2="{{ chart_data.line.y2 }}"
+                stroke="#171918"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+
+              <!-- Punto de la predicción actual en el buscador (Monocromático destacado) -->
+              <circle
+                id="chart-current-point"
+                class="chart-current-point"
+                cx="{{ result.cx|default:'56.0' }}"
+                cy="{{ result.cy|default:'295.4' }}"
+                r="8"
+                fill="#171918"
+                stroke="none"
+                stroke-width="0"
+              >
+                <title>Punto estimado en el buscador</title>
+              </circle>
+
+              <!-- Etiqueta eje X -->
+              <g fill="#171918" font-family="system-ui, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">
+                <text x="296" y="324">m²</text>
+              </g>
+
+
+            </svg>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Columna Derecha: Buscador, Predicción e Información Académica -->
+      <section class="profile-card profile-info-card" aria-label="Predicción e información académica">
+        <div class="prediction-header">
+          <h2 class="section-title">Predicción de precio</h2>
+          <span class="status-pill is-ready" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            Modelo cargado
+          </span>
+        </div>
+
+        <!-- Buscador / Formulario de predicción -->
+        <form id="prediction-form" class="prediction-form" method="POST" action="" noValidate>
+          {% csrf_token %}
+          <div class="prediction-field">
+            <label class="prediction-label" for="metros-cuadrados">
+              Superficie de la vivienda (m²)
+            </label>
+
+            <div class="prediction-control">
+              <input
+                id="metros-cuadrados"
+                name="metros_cuadrados"
+                class="prediction-input"
+                type="number"
+                inputmode="decimal"
+                min="0.01"
+                step="any"
+                list="valores-entrenamiento"
+                value="{{ selected_metros|floatformat:'-2' }}"
+                placeholder="Ej: 100"
+                autocomplete="off"
+                aria-describedby="metros-hint"
+                required
+              />
+
+              <!-- Datalist con los valores de entrenamiento del backend -->
+              <datalist id="valores-entrenamiento">
+                {% for item in training_data %}
+                <option value="{{ item.metros }}" label="{{ item.metros }} m² (Real en backend: ${{ item.precio }})"></option>
+                {% endfor %}
+              </datalist>
+
+              <button id="prediction-button" class="prediction-button" type="submit">
+                Predecir
+              </button>
+            </div>
+
+            <!-- Chips de acceso directo a los valores de entrenamiento del backend -->
+            <div class="training-chips-container">
+              <span class="training-chips-label">Valores de entrenamiento del backend:</span>
+              <div class="training-chips-list" role="group" aria-label="Valores del set de entrenamiento">
+                {% for item in training_data %}
+                <button
+                  type="button"
+                  class="training-chip {% if selected_metros == item.metros %}is-active{% endif %}"
+                  data-m2="{{ item.metros }}"
+                  title="Superficie: {{ item.metros }} m² · Precio real: ${{ item.precio }}"
+                >
+                  {{ item.metros }} m²
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+
+            <span class="prediction-hint" id="metros-hint">
+              Ingresa los metros cuadrados o selecciona un valor de entrenamiento para estimar el precio en COP.
+            </span>
+          </div>
+        </form>
+
+        <!-- Mensajes de error -->
+        <div id="prediction-error-box" class="error-message" role="alert" style="display: {% if error %}flex{% else %}none{% endif %};">
+          <p id="prediction-error-text">{{ error|default:'' }}</p>
+        </div>
+
+        <!-- Resultado de la predicción -->
+        <div class="info-tile prediction-result" aria-live="polite">
+          <span class="info-tile__label">Predicción del precio (COP)</span>
+          <p class="info-tile__value prediction-result__price" id="prediction-price">
+            {{ result.precio_formateado }}
+          </p>
+          <span class="prediction-result__hint" id="prediction-hint">
+            Para una vivienda de {{ result.metros_formateado }} m²
+          </span>
+        </div>
+
+        <!-- Tarjeta de comparación con set de entrenamiento -->
+        <div id="training-match-card" class="training-match-card {% if not result.es_entrenamiento %}is-hidden{% endif %}">
+          <span class="training-match-badge">
+            Dato del set de entrenamiento
+          </span>
+          <div class="training-match-details">
+            <span>Precio real registrado: <strong id="training-real-price">{{ result.precio_real_formateado|default:'' }}</strong></span>
+            <span>Diferencia con predicción: <strong id="training-diff">{{ result.diferencia_formateada|default:'' }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Bloque Académico distribuido en cuadrícula que aprovecha el ancho -->
+        <div class="academic-block">
+          <h2 class="section-title academic-title">Información académica</h2>
+
+          <div class="profile-info-list">
+            <div class="info-tile">
+              <span class="info-tile__label">Aprendiz</span>
+              <p class="info-tile__value">{{ profile.name }}</p>
+            </div>
+
+            <div class="info-tile">
+              <span class="info-tile__label">Programa de formación</span>
+              <p class="info-tile__value">{{ profile.program }}</p>
+            </div>
+
+            <div class="info-tile">
+              <span class="info-tile__label">Ficha</span>
+              <p class="info-tile__value">{{ profile.ficha }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Script Vanilla JavaScript para interactividad instantánea sin recarga (NO REACT) -->
+  <script src="{% static 'frontend/js/prediction.js' %}"></script>
+</body>
+</html>

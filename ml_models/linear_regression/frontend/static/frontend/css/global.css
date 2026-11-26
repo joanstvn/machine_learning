@@ -1,0 +1,42 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  color: var(--tg-ink);
+  background: var(--tg-white);
+  font-family: var(--tg-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.section-title {
+  margin: 0;
+  color: var(--tg-title);
+  font-size: 1.4rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-align: left;
+}

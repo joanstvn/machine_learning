@@ -1,0 +1,29 @@
+.info-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 118px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: var(--tg-paper);
+  text-align: left;
+}
+
+.info-tile__label {
+  color: var(--tg-text-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.info-tile__value {
+  margin: 0;
+  color: var(--tg-text);
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.35;
+}

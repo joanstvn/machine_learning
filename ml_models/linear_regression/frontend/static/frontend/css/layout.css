@@ -1,0 +1,48 @@
+.app-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: clamp(20px, 2.5vh, 36px) clamp(24px, 3.2vw, 56px);
+  color: var(--tg-ink);
+  background: var(--tg-white);
+  font-family: var(--tg-font);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(440px, 1fr) minmax(480px, 1.15fr);
+  align-items: stretch;
+  column-gap: clamp(32px, 3.2vw, 52px);
+  row-gap: 24px;
+  width: 100%;
+  max-width: 1620px;
+  padding: 0;
+  margin: 0 auto;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.profile-card {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1080px) {
+  .app-page {
+    padding: 24px 18px;
+    align-items: flex-start;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+    row-gap: 28px;
+  }
+}
